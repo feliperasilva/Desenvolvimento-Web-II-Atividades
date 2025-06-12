@@ -37,3 +37,4 @@ Route::post('/books/create-select', [BookController::class, 'storeWithSelect'])-
 
 
 Route::resource('books', BookController::class)->except(['create', 'store']);
+//
