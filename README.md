@@ -1,4 +1,4 @@
-# Web2---Atividades
+# Desenvolvimento-Web-II-Atividades
 
 Repositório destinado às atividades da disciplina de **Desenvolvimento Web II** do IFPE - Campus Igarassu.
 
