@@ -24,10 +24,13 @@
                     {{ $book->category->name }}
                 </a>
             </p>
-            <p><strong>Imagem:</strong>
-                    
-            </p>
-            <img src="{{ $book->imagem }}" alt="">
+            <p><strong>Imagem:</strong></p>
+@if ($book->imagem)
+    <img src="{{ asset($book->imagem) }}" alt="Capa do livro {{ $book->title }}" style="max-width: 300px; height: auto;">
+@else
+    <p>Imagem não disponível.</p>
+@endif
+
         </div>
     </div>
 

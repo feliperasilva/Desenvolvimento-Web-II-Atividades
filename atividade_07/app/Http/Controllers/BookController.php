@@ -26,13 +26,17 @@ class BookController extends Controller
             'publisher_id' => 'required|exists:publishers,id',
             'author_id' => 'required|exists:authors,id',
             'category_id' => 'required|exists:categories,id',
-            'imagem' => 'nullable', 'image', 'mimes:jpeg,png,jpg,svg',
+            'imagem' => 'nullable|image|mimes:jpeg,png,jpg,svg'
         ]);
 
-        Storage::put($request['imagem'], $request['imagem']);
-        //Storage::disk('storage')->put($request['imagem'], $request['imagem']);
-        $request['imagem'] = Storage::url($request['imagem']);
-        Book::create($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('imagem')) {
+            $path = $request->file('imagem')->store('livros', 'public');
+            $data['imagem'] = 'storage/' . $path;
+        }
+
+        Book::create($data);
 
         return redirect()->route('books.index')->with('success', 'Livro criado com sucesso.');
     }
@@ -66,19 +70,19 @@ class BookController extends Controller
     public function index()
     {
         $books = Book::with('author')->paginate(20);
-
         return view('books.index', compact('books'));
     }
 
+    // Detalhes de um livro
     public function show(Book $book)
     {
         $book->load(['author', 'publisher', 'category']);
         $users = User::all();
-        return view('books.show', compact('book','users'));
+
+        return view('books.show', compact('book', 'users'));
     }
 
-
-    // Formulário de edição (usando selects)
+    // Formulário de edição
     public function edit(Book $book)
     {
         $publishers = Publisher::all();
@@ -96,9 +100,22 @@ class BookController extends Controller
             'publisher_id' => 'required|exists:publishers,id',
             'author_id' => 'required|exists:authors,id',
             'category_id' => 'required|exists:categories,id',
+            'imagem' => 'nullable|image|mimes:jpeg,png,jpg,svg'
         ]);
 
-        $book->update($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('imagem')) {
+            // Apaga imagem antiga, se houver
+            if ($book->imagem && file_exists(public_path($book->imagem))) {
+                unlink(public_path($book->imagem));
+            }
+
+            $path = $request->file('imagem')->store('livros', 'public');
+            $data['imagem'] = 'storage/' . $path;
+        }
+
+        $book->update($data);
 
         return redirect()->route('books.index')->with('success', 'Livro atualizado com sucesso.');
     }
@@ -106,7 +123,13 @@ class BookController extends Controller
     // Deletar o livro
     public function destroy(Book $book)
     {
+        // Deleta a imagem do disco, se existir
+        if ($book->imagem && file_exists(public_path($book->imagem))) {
+            unlink(public_path($book->imagem));
+        }
+
         $book->delete();
+
         return redirect()->route('books.index')->with('success', 'Livro deletado com sucesso.');
     }
 }
