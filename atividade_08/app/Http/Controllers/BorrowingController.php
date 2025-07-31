@@ -9,9 +9,10 @@ use Illuminate\Http\Request;
 
 class BorrowingController extends Controller
 {
-    // Registrar empréstimo
     public function store(Request $request, Book $book)
     {
+        $this->authorize('create', Borrowing::class);
+
         $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
@@ -25,9 +26,10 @@ class BorrowingController extends Controller
         return redirect()->route('books.show', $book)->with('success', 'Empréstimo registrado com sucesso.');
     }
 
-    // Registrar devolução
     public function returnBook(Borrowing $borrowing)
     {
+        $this->authorize('update', $borrowing);
+
         $borrowing->update([
             'returned_at' => now(),
         ]);
@@ -35,9 +37,10 @@ class BorrowingController extends Controller
         return redirect()->route('books.show', $borrowing->book_id)->with('success', 'Devolução registrada com sucesso.');
     }
 
-    // Histórico de empréstimos do usuário
     public function userBorrowings(User $user)
     {
+        $this->authorize('view', $user);
+
         $borrowings = $user->books()->withPivot('borrowed_at', 'returned_at')->get();
 
         return view('users.borrowings', compact('user', 'borrowings'));
